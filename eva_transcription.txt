@@ -1,11 +1,7 @@
-# f75v Eredeti szavak
-okchey saral dokal darol daldy dalchey dalkar qokal dly ory oty lcey dary dal qoted rkal ykedy otoly olkcey
-
-# Zöld Tesztfajta (Valid összetételek)
-qodaldy okdarol rdalkar
-
-# Sárga Tesztfajta (Felülvizsgálandó szerkezetek)
-qochey daled okkedy
-
-# Piros Tesztfajta (Phantom szavak)
-cneref xytalk qolp
+# --- FOLIO f76r (Balneological Section) ---
+f76r.1;qokain;GREEN;Hydro-flow marker
+f76r.2;pchedy;YELLOW;Alkaloid trace candidate
+f76r.3;qokal;GREEN;Basin fluid marker
+f76r.4;dalor;GREEN;Vessel container designation
+f76r.5;chedych;YELLOW;Reagent flow junction
+f76r.6;okaiin;RED;Phantom duplicate core candidate
