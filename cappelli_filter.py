@@ -1,86 +1,110 @@
-# Voynich Manuscript: 0-Anagram Cappelli-Based Filter & Validator
-# Author: Independent Research Project
+"""
+Voynich Manuscript Cappelli-Filter Engine (0-Anagrammatic Model)
+File-based Corpus Processor, Sliding Splitter & Statistical Analyzer
+"""
 
 import re
 from typing import Dict, List, Tuple
 
-class CappelliVoynichFilter:
-    """
-    Deterministic 0-anagram filter utilizing Cappelli's Lexicon Abbreviaturarum
-    rules combined with strict positional character mapping.
-    """
+class CappelliFilterEngine:
     def __init__(self):
-        # 1. Positional Abbreviation Lexicon (Cappelli Latin mapping)
-        self.cappelli_lexicon = {
-            "con": "cum",
-            "us": "ibus",
-            "q": "que",
-            "or": "orum",
-            "am": "amentum",
-            "ar": "arum",
-            "al": "alis"
+        # Core morphological root dictionary mapped to 15th-century apothecary operations
+        self.root_dictionary: Dict[str, str] = {
+            "dal": "Aqueous Phase / Condensate / Sediment",
+            "dly": "Purified Water Sediment",
+            "dar": "Clarification / Decantation",
+            "ol":  "Lipophilic / Balsamic Phase",
+            "ot":  "Concentrated Oil / Lipid Layer",
+            "or":  "Volatile / Essential Oil Fraction",
+            "sar": "Thermal Vaporization / Boiling",
+            "kal": "Purification / Fine Extraction",
+            "kar": "Herbal Maceration / Enrichment",
+            "ked": "Stabilization / Final Preservation"
+        }
+        
+        self.suffix_dictionary: Dict[str, str] = {
+            "chey": "Active Thermal/Chemical Reaction",
+            "cey":  "Fluid State / Transfer Process",
+            "dy":   "Thermal Cooling / Solidification",
+            "ed":   "Completed Operation / Process Lock",
+            "y":    "Directional Vector / Action Enclitic"
+        }
+        
+        self.prefix_dictionary: Dict[str, str] = {
+            "q":    "Forced Transfer / Siphoning / Piping",
+            "ok":   "Primary Reaction / Thermal Entry",
+            "dok":  "Secondary Condensation / Primary Filter",
+            "r":    "Refined / Purified Stream"
         }
 
-        # 2. Known synthetic placebo / phantom words explicitly rejected
-        self.placebo_blacklist = {"cneref", "shey", "qokeey", "chocty"}
-
-        # 3. Test dataset: Voynich EVA transcript samples (e.g. f50r, f53r, f54v)
-        self.eva_samples = [
-            "fachys", "ykal", "ar", "al", "qokeey", "cneref", "con", "us", "am"
-        ]
-
-    def is_valid_0_anagram(self, token: str) -> bool:
-        """
-        Validates token against 0-anagram positional constraints.
-        Disallows arbitrary character rearrangements or invalid n-grams.
-        """
-        # Strict positional check: character sequence must match exact left-to-right order
-        if token in self.placebo_blacklist:
-            return False
+    def decompose_word(self, word: str) -> Dict[str, str]:
+        """Sliding split deconstruction into Prefix, Root, Suffix."""
+        parsed = {"prefix": "", "root": "", "suffix": "", "raw": word}
+        temp = word
         
-        # Check if sequence conforms to Cappelli entry or valid phonetic base
-        if token in self.cappelli_lexicon or re.match(r"^[a-z]+$", token):
-            return True
+        for pfx in sorted(self.prefix_dictionary.keys(), key=len, reverse=True):
+            if temp.startswith(pfx):
+                parsed["prefix"] = pfx
+                temp = temp[len(pfx):]
+                break
+                
+        for sfx in sorted(self.suffix_dictionary.keys(), key=len, reverse=True):
+            if temp.endswith(sfx):
+                parsed["suffix"] = sfx
+                temp = temp[:-len(sfx)]
+                break
+                
+        parsed["root"] = temp
+        return parsed
+
+    def validate_token(self, word: str) -> Tuple[bool, str]:
+        """Strict 0-anagrammatic verification rule."""
+        clean_word = re.sub(r'[^a-z]', '', word.lower())
+        if not clean_word:
+            return False, "EMPTY"
             
-        return False
-
-    def evaluate_token(self, token: str) -> Dict[str, str]:
-        """
-        Evaluates a single EVA word token against Cappelli rules and placebos.
-        """
-        if token in self.placebo_blacklist:
-            return {"token": token, "status": "REJECTED_PLACEBO", "resolution": None}
-            
-        if token in self.cappelli_lexicon:
-            return {"token": token, "status": "VALIDATED_CAPPELLI", "resolution": self.cappelli_lexicon[token]}
-
-        if self.is_valid_0_anagram(token):
-            return {"token": token, "status": "PASS_MORPHOLOGICAL", "resolution": token}
-
-        return {"token": token, "status": "REJECTED_UNKNOWN", "resolution": None}
-
-    def run_batch_validation(self, tokens: List[str]) -> Tuple[float, List[Dict]]:
-        """
-        Runs batch evaluation on EVA transcript tokens and calculates coverage.
-        """
-        results = [self.evaluate_token(t) for t in tokens]
-        validated_count = sum(1 for r in results if r["status"] in ("VALIDATED_CAPPELLI", "PASS_MORPHOLOGICAL"))
-        coverage_percentage = (validated_count / len(tokens)) * 100 if tokens else 0.0
+        decomp = self.decompose_word(clean_word)
+        root = decomp["root"]
         
-        return coverage_percentage, results
+        if root in self.root_dictionary or clean_word in self.root_dictionary:
+            return True, f"VALID (Root: '{root}')"
+            
+        if decomp["prefix"] and (root in self.root_dictionary):
+            return True, f"VALID (Composite: [{decomp['prefix']}- + {root}])"
+            
+        return False, f"REJECTED (Phantom / Unverified Root: '{root}')"
+
+    def process_eva_file(self, filename: str = "eva_transcription.txt"):
+        """Reads EVA transcription file, filters tokens, and generates analytics."""
+        try:
+            with open(filename, "r", encoding="utf-8") as f:
+                content = f.read()
+        except FileNotFoundError:
+            print(f"Error: '{filename}' not found. Please create 'eva_transcription.txt' with raw EVA text.")
+            return
+
+        tokens = re.findall(r'\b[a-z]+\b', content.lower())
+        
+        valid_count = 0
+        rejected_count = 0
+        print(f"=== VOYNICH CAPPELLI-FILTER ANALYSIS: {filename} ===")
+        print(f"Total tokens identified: {len(tokens)}\n")
+        
+        for token in tokens:
+            valid, msg = self.validate_token(token)
+            if valid:
+                valid_count += 1
+                print(f"[PASS] {token:<12} -> {msg}")
+            else:
+                rejected_count += 1
+                print(f"[FAIL] {token:<12} -> {msg}")
+                
+        print("\n=== STATISTICAL SUMMARY ===")
+        print(f"Valid Morphological Tokens: {valid_count}")
+        print(f"Rejected / Phantom Words:   {rejected_count}")
+        if tokens:
+            print(f"Validation Rate:            {(valid_count / len(tokens))*100:.2f}%")
 
 if __name__ == "__main__":
-    validator = CappelliVoynichFilter()
-    
-    print("=== VOYNICH CAPPELLI 0-ANAGRAM FILTER TEST ===")
-    
-    # Run test on synthetic control word 'cneref'
-    control_result = validator.evaluate_token("cneref")
-    print(f"\nPlacebo Control Test ('cneref'): Status = {control_result['status']}")
-
-    # Run batch analysis on test EVA dataset
-    coverage, details = validator.run_batch_validation(validator.eva_samples)
-    print(f"\nBatch Evaluation Coverage: {coverage:.2f}%")
-    print("\nDetailed Token Breakdown:")
-    for res in details:
-        print(f"  - Token: '{res['token']:<8}' | Status: {res['status']:<20} | Resolution: {res['resolution']}")
+    engine = CappelliFilterEngine()
+    engine.process_eva_file("eva_transcription.txt")
