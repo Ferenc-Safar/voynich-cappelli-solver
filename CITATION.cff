@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use this software or methodology, please cite it as below."
+authors:
+  - family-names: "Sáfár"
+    given-names: "Ferenc"
+title: "0-Anagrammatic Cappelli Filter Engine for Voynich Manuscript Analysis"
+version: 1.0.0
+date-released: 2026-09-04
+url: "https://github.com/ferencsafar/voynich-cappelli-filter"
