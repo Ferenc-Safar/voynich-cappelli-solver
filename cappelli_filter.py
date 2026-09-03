@@ -1,44 +1,51 @@
 """
-Voynich Manuscript Cappelli-Filter Engine (0-Anagrammatic Model)
-File-based Corpus Processor, Sliding Splitter & Statistical Analyzer
+Voynich Manuscript Fully Autonomous Cappelli-Engine (0-Anagrammatic Model)
+Integrated Modules: 
+- Balneological & Hydrodynamic Flow Filter
+- Toxicological & Alkaloid Extraction Filter
+- 0-Anagrammatic Cappelli Dictionary Validation
+- Color Validation Status (GREEN, YELLOW, RED)
+- Automated Batch File Processor & Analytics
 """
 
 import re
 from typing import Dict, List, Tuple
 
-class CappelliFilterEngine:
+class AutonomousVoynichEngine:
     def __init__(self):
-        # Core morphological root dictionary mapped to 15th-century apothecary operations
-        self.root_dictionary: Dict[str, str] = {
-            "dal": "Aqueous Phase / Condensate / Sediment",
-            "dly": "Purified Water Sediment",
-            "dar": "Clarification / Decantation",
-            "ol":  "Lipophilic / Balsamic Phase",
-            "ot":  "Concentrated Oil / Lipid Layer",
-            "or":  "Volatile / Essential Oil Fraction",
-            "sar": "Thermal Vaporization / Boiling",
-            "kal": "Purification / Fine Extraction",
+        # 1. INTEGRÁLT KÓDEX ÉS GYÖKSZÓTÁR (Balneológia + Toxikológia + Morfológia)
+        self.root_dictionary: Dict[str, Dict[str, str]] = {
+            "dal": {"domain": "Hydro", "desc": "Aqueous Phase / Condensate / Sediment"},
+            "dly": {"domain": "Hydro", "desc": "Purified Water Sediment"},
+            "dar": {"domain": "Hydro", "desc": "Clarification / Decantation"},
+            "ol":  {"domain": "Tox/Lipid", "desc": "Lipophilic / Balsamic Phase"},
+            "ot":  {"domain": "Tox/Lipid", "desc": "Concentrated Lipid / Active Alkaloid Layer"},
+            "or":  {"domain": "Tox/Volatile", "desc": "Volatile / Essential Oil / Essential Extract"},
+            "sar": {"domain": "Thermal", "desc": "Thermal Vaporization / Boiling"},
+            "kal": {"domain": "Pharm", "desc": "Purification / Fine Extraction"},
             "kar": "Herbal Maceration / Enrichment",
-            "ked": "Stabilization / Final Preservation"
+            "ked": {"domain": "Tox/Lock", "desc": "Stabilization / Neutralization / Preservation"}
         }
         
+        # 2. VEKTOROK ÉS PREFIKUMOK (Siphon / Thermal / Pipeline)
+        self.prefix_dictionary: Dict[str, str] = {
+            "q":    "Siphoning / Forced Piping Vector",
+            "ok":   "Primary Thermal Entry / Reaction",
+            "dok":  "Secondary Filter / Condensation",
+            "r":    "Refined Pure Stream"
+        }
+
+        # 3. MŰVELETI SZUFFIXUMOK (Reaction / Transfer / State Lock)
         self.suffix_dictionary: Dict[str, str] = {
             "chey": "Active Thermal/Chemical Reaction",
             "cey":  "Fluid State / Transfer Process",
             "dy":   "Thermal Cooling / Solidification",
-            "ed":   "Completed Operation / Process Lock",
-            "y":    "Directional Vector / Action Enclitic"
-        }
-        
-        self.prefix_dictionary: Dict[str, str] = {
-            "q":    "Forced Transfer / Siphoning / Piping",
-            "ok":   "Primary Reaction / Thermal Entry",
-            "dok":  "Secondary Condensation / Primary Filter",
-            "r":    "Refined / Purified Stream"
+            "ed":   "Completed Process / Process Lock",
+            "y":    "Directional Vector / Enclitic"
         }
 
-    def decompose_word(self, word: str) -> Dict[str, str]:
-        """Sliding split deconstruction into Prefix, Root, Suffix."""
+    def sliding_split_decompose(self, word: str) -> Dict[str, str]:
+        """Automatikus morfémabontó (Sliding Splitter)."""
         parsed = {"prefix": "", "root": "", "suffix": "", "raw": word}
         temp = word
         
@@ -57,54 +64,74 @@ class CappelliFilterEngine:
         parsed["root"] = temp
         return parsed
 
-    def validate_token(self, word: str) -> Tuple[bool, str]:
-        """Strict 0-anagrammatic verification rule."""
+    def evaluate_token(self, word: str) -> Tuple[str, str, str]:
+        """
+        Önműködő Színszűrő & Toxikológiai / Balneológiai kiértékelő:
+        - GREEN: Teljes egyezés a Cappelli/Toxikológiai kódexben.
+        - YELLOW: Részleges morféma (szerkezeti felülvizsgálat).
+        - RED: Fantomszó / 0-Anagrammás elutasítás.
+        """
         clean_word = re.sub(r'[^a-z]', '', word.lower())
         if not clean_word:
-            return False, "EMPTY"
+            return "RED", "EMPTY", "Nincs bemeneti adat"
             
-        decomp = self.decompose_word(clean_word)
+        decomp = self.sliding_split_decompose(clean_word)
         root = decomp["root"]
         
+        # 0-Anagrammás Cappelli & Toxikológiai ellenőrzés
         if root in self.root_dictionary or clean_word in self.root_dictionary:
-            return True, f"VALID (Root: '{root}')"
+            info = self.root_dictionary.get(root, {"desc": "Core Match"})
+            desc = info["desc"] if isinstance(info, dict) else info
+            return "GREEN", "FULL_MATCH", f"Igazolt Gyök: '{root}' ({desc})"
             
         if decomp["prefix"] and (root in self.root_dictionary):
-            return True, f"VALID (Composite: [{decomp['prefix']}- + {root}])"
+            info = self.root_dictionary[root]
+            desc = info["desc"] if isinstance(info, dict) else info
+            return "GREEN", "FULL_MATCH", f"Összetett [{decomp['prefix']}- + {root}] -> {desc}"
             
-        return False, f"REJECTED (Phantom / Unverified Root: '{root}')"
+        if decomp["prefix"] or decomp["suffix"]:
+            return "YELLOW", "UNDER_REVIEW", f"Szerkezeti gyanú, vizsgálandó gyök: '{root}'"
+            
+        return "RED", "HIDDEN_PHANTOM", f"Fantomszó elutasítva (Cappelli-szűrő): '{root}'"
 
-    def process_eva_file(self, filename: str = "eva_transcription.txt"):
-        """Reads EVA transcription file, filters tokens, and generates analytics."""
+    def run_autonomous_pipeline(self, input_file: str = "eva_transcription.txt"):
+        """TELJESEN ÖNMŰKÖDŐ ELEMZŐ MOTOR"""
         try:
-            with open(filename, "r", encoding="utf-8") as f:
-                content = f.read()
+            with open(input_file, "r", encoding="utf-8") as f:
+                raw_text = f.read()
         except FileNotFoundError:
-            print(f"Error: '{filename}' not found. Please create 'eva_transcription.txt' with raw EVA text.")
+            print(f"Hiba: A '{input_file}' fájl nem található.")
             return
 
-        tokens = re.findall(r'\b[a-z]+\b', content.lower())
+        tokens = re.findall(r'\b[a-z]+\b', raw_text.lower())
+        stats = {"GREEN": 0, "YELLOW": 0, "RED": 0}
         
-        valid_count = 0
-        rejected_count = 0
-        print(f"=== VOYNICH CAPPELLI-FILTER ANALYSIS: {filename} ===")
-        print(f"Total tokens identified: {len(tokens)}\n")
+        print("="*60)
+        print(f"=== VOYNICH AUTONOMOUS PIPELINE ELEMZÉS: {input_file} ===")
+        print(f"Feldolgozott tokenek: {len(tokens)}\n")
         
         for token in tokens:
-            valid, msg = self.validate_token(token)
-            if valid:
-                valid_count += 1
-                print(f"[PASS] {token:<12} -> {msg}")
-            else:
-                rejected_count += 1
-                print(f"[FAIL] {token:<12} -> {msg}")
-                
-        print("\n=== STATISTICAL SUMMARY ===")
-        print(f"Valid Morphological Tokens: {valid_count}")
-        print(f"Rejected / Phantom Words:   {rejected_count}")
+            color, status, msg = self.evaluate_token(token)
+            stats[color] += 1
+            
+            if color == "GREEN":
+                print(f"[🟢 ZÖLD / MATCH]      {token:<12} -> {msg}")
+            elif color == "YELLOW":
+                print(f"[🟡 SÁRGA / REVIEW]    {token:<12} -> {msg}")
+            elif color == "RED":
+                print(f"[🔴 PIROS / REJTETT]   {token:<12} -> {msg}")
+
+        print("\n" + "="*60)
+        print("=== AUTOMATIKUS PIOS/SÁRGA/ZÖLD STATISZTIKA ===")
+        print(f"🟢 Zöld (Teljesen igazolt morféma):   {stats['GREEN']}")
+        print(f"🟡 Sárga (Szerkezetileg vizsgálandó):  {stats['YELLOW']}")
+        print(f"🔴 Piros (Kiszűrt fantomszó):         {stats['RED']}")
+        
         if tokens:
-            print(f"Validation Rate:            {(valid_count / len(tokens))*100:.2f}%")
+            accuracy = (stats['GREEN'] / len(tokens)) * 100
+            print(f"📊 Validációs Hatékonyság:            {accuracy:.2f}%")
+        print("="*60)
 
 if __name__ == "__main__":
-    engine = CappelliFilterEngine()
-    engine.process_eva_file("eva_transcription.txt")
+    engine = AutonomousVoynichEngine()
+    engine.run_autonomous_pipeline("eva_transcription.txt")
