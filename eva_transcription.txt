@@ -1,1 +1,11 @@
+# f75v Eredeti szavak
 okchey saral dokal darol daldy dalchey dalkar qokal dly ory oty lcey dary dal qoted rkal ykedy otoly olkcey
+
+# Zöld Tesztfajta (Valid összetételek)
+qodaldy okdarol rdalkar
+
+# Sárga Tesztfajta (Felülvizsgálandó szerkezetek)
+qochey daled okkedy
+
+# Piros Tesztfajta (Phantom szavak)
+cneref xytalk qolp
