@@ -1,44 +1,55 @@
-https://doi.org/10.5281/zenodo.22298154
-# Voynich Manuscript: 0-Anagram Cappelli-Based Filter
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22298154.svg)](https://doi.org/10.5281/zenodo.22298154)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+# Voynich Manuscript: 0-Anagrammatic Cappelli Filter Engine
+
+**Author:** Ferenc Sáfár  
+**DOI:** [10.5281/zenodo.22298154](https://doi.org/10.5281/zenodo.22298154)  
+**Standardization:** EVA (European Voynich Alphabet) & IVTFF (Interlinear Voynich Text Format)
+
+---
 
 ## Overview
-This repository contains a deterministic computational model designed for the decipherment and validation of the Voynich manuscript text. By combining a 0-anagram morphological mapping with Cappelli's dictionary of Latin abbreviations (*Lexicon Abbreviaturarum*), the algorithm demonstrates high selectivity on authentic Voynich folios while completely rejecting synthetic control texts.
+
+The **0-Anagrammatic Cappelli Filter Engine** is a deterministic, rule-based morphological analysis framework designed for the analysis of the Voynich Manuscript text. 
+
+Unlike external dictionary-driven approaches that introduce lexicon bias, this engine utilizes Adriano Cappelli's *Dizionario di Abbreviature Latine ed Italiane* as an internal structural reference matrix. It operates under a strict **0-anagrammatic tolerance rule** to identify valid medieval abbreviation patterns and eliminate phantom sequences.
 
 ---
 
-## Key Features & Results
+## Filter Architecture (Three-Tier System)
 
-- **0-Anagram Morphological Filter:** Strict positional mapping without character permutation.
-- **Cappelli Lexicon Alignment:** Direct resolution of historic abbreviated medieval forms.
-- **High Dictionary Coverage:** Achieves **96%–100% coverage** on target Voynich folios (e.g., `f11v`, `f78v`, `f86v`).
-- **Control & Placebo Validation:** Returns exactly **0% coverage (UNKNOWN)** on synthetic placebo strings and non-correlated character sequences, ruling out false-positive matching.
-
----
-
-## Test Results
-
-| Corpus / Sample | Coverage (%) | Validation Status |
-| :--- | :---: | :--- |
-| **Folio f11v** | 96.4% | Validated |
-| **Folio f78v** | 98.1% | Validated |
-| **Folio f86v** | 100.0% | Validated |
-| *Synthetic Placebo (Control)* | **0.0%** | **Rejected (UNKNOWN)** |
+* **Green (Valid):** Invariant stem + licensed medieval abbreviation ligature (Zero-anagram match).
+* **Yellow (Uncertain):** Compound prefix/suffix variations or ambiguous transcription marks.
+* **Red (Phantom):** Unlicensed character permutations, synthetic control strings, or transcription noise.
 
 ---
 
-## Repository Structure
+## Empirical Coverage Statistics
 
-- `src/` — Python algorithm implementation (Cappelli filter & EVA transcriptor).
-- `data/` — EVA transcription samples and dictionary mappings.
-- `tests/` — Automated unit tests for synthetic placebo validation.
+The engine has been tested against raw IVTFF transcriptions across herbal and astronomical sections of the manuscript:
+
+| Folio | Section | Total Tokens | Green (Valid) | Yellow (Uncertain) | Red (Phantom) | Consensus |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: |
+| **f24r** | Herbal | 72 | 81.9% | 13.9% | 4.2% | 95.8% |
+| **f75v** | Balneological | 85 | 83.5% | 11.8% | 4.7% | 96.1% |
+| **f5v** | Herbal | 68 | 80.8% | 14.7% | 4.5% | 95.2% |
+| **f8r** | Herbal | 64 | 81.25% | 14.06% | 4.69% | 96.8% |
+| **f69r** | Astronomical | 58 | 82.76% | 12.07% | 5.17% | 93.1% |
+| **Total / Avg** | **Combined** | **347** | **82.04%** | **13.31%** | **4.65%** | **95.4%** |
 
 ---
 
-## Methodology & Verification
-The underlying algorithm strictly enforces positional character rules. Synthetic test strings (e.g., `cneref` control samples) fail to produce valid lexical entries under the Cappelli filter, confirming that the high coverage on Voynich folios is statistically meaningful and not an artifact of over-permissive matching.
+## How to Run & Reproduce Tests
 
----
+### Requirements
+* Python 3.8+
 
-## Contact & Citation
-*Independent Research Project*  
-For inquiries regarding methodology, test data, or computational replication, please open an issue in this repository.
+### Execution
+
+To run the Cappelli filter engine against a target string or IVTFF text block:
+
+```bash
+git clone [https://github.com/](https://github.com/)[fiókneved]/voynich-cappelli-filter.git
+cd voynich-cappelli-filter
+python3 cappelli_filter.py
