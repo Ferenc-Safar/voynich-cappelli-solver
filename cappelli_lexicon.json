@@ -1,0 +1,47 @@
+{
+  "stems": {
+    "chod": {
+      "latin": "radix / herba",
+      "hungarian": "gyökér / növényi rész",
+      "category": "botanical"
+    },
+    "ok": {
+      "latin": "aqua / decoctio",
+      "hungarian": "főzet / kivonat / víz",
+      "category": "pharmaceutical"
+    },
+    "qok": {
+      "latin": "mensura / dosi",
+      "hungarian": "adag / kimért mennyiség",
+      "category": "recipe"
+    },
+    "sol": {
+      "latin": "sol / calidus",
+      "hungarian": "nap / melegítés / szárítás",
+      "category": "process"
+    },
+    "dar": {
+      "latin": "folium / pars",
+      "hungarian": "levél / rész",
+      "category": "botanical"
+    }
+  },
+  "suffixes": {
+    "aiin": {
+      "grammar": "verb_imperative / process",
+      "meaning_hu": "előállítási / főzési utasítás (-ni, -sdd)"
+    },
+    "ody": {
+      "grammar": "noun_ablative / condition",
+      "meaning_hu": "állapot / módozat (-ból, -ért)"
+    },
+    "ar": {
+      "grammar": "plural / measure",
+      "meaning_hu": "többes szám / mértékegység"
+    },
+    "otedy": {
+      "grammar": "time / duration",
+      "meaning_hu": "időtartam / pihentetés"
+    }
+  }
+}
