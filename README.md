@@ -1,3 +1,4 @@
+https://doi.org/10.5281/zenodo.22298154
 # Voynich Manuscript: 0-Anagram Cappelli-Based Filter
 
 ## Overview
