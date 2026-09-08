@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Voynich Manuscript: 0-Anagrammatic Cappelli Filter & Sanitizer Engine (v1.6.0)
+Voynich Manuscript: 0-Anagrammatic Cappelli Filter & Sanitizer Engine (v1.7.0)
 ----------------------------------------------------------------------
 Author: Sáfár Ferenc
 DOI: 10.5281/zenodo.22298154
@@ -21,7 +21,7 @@ from typing import Dict, List, Tuple
 # --- METADATA & CONFIGURATION ---
 AUTHOR = "Sáfár Ferenc"
 DOI = "10.5281/zenodo.22298154"
-VERSION = "1.6.0"
+VERSION = "1.7.0"
 
 # --- MODULE 1: CAPPELLI LEXICON & STRUCTURAL PATTERNS ---
 PREFIXES = {
@@ -46,9 +46,34 @@ STEMS = {
 TOXICITY_LOCKS = {'oeees', 'loeees', 'sfheo'}
 
 
+class SemanticIsolationFilter:
+    """
+    Szigorú szétválasztó modul a konfirmációs torzítás (Overfitting/Bias) megakadályozására.
+    Biztosítja, hogy az algoritmus kizárólag objektív morfológiai leírókat adjon vissza,
+    és blokkolja a konkrét fajnevek automatikus társítását.
+    """
+    BANNED_SPECIFIC_TAXA = [
+        "borostyán", "tündérrózsa", "báránypirosító", 
+        "hedera", "nymphaea", "alkanna", "ivy", "water lily"
+    ]
+
+    @classmethod
+    def sanitize_token_data(cls, token_data: dict) -> dict:
+        meaning = token_data.get("stem_meaning", "").lower() + " " + token_data.get("prefix_meaning", "").lower()
+        
+        for taxon in cls.BANNED_SPECIFIC_TAXA:
+            if taxon in meaning:
+                token_data["stem_meaning"] = "[MEGHATÁROZATLAN BOTANIKAI MORFOLÓGIAI ELEM]"
+                token_data["class"] = "Yellow_Uncertain"
+                token_data["semantic_bias_warning"] = f"Blocked specific taxon association: '{taxon}'"
+                break
+
+        return token_data
+
+
 class VoynichSanitizer:
     """
-    0. Data Sanitization Module (v1.6.0)
+    0. Data Sanitization Module (v1.7.0)
     Strips non-handwritten artifacts, OCR errors, IVTFF headers, and metadata lines.
     """
     @staticmethod
@@ -64,7 +89,7 @@ class VoynichSanitizer:
 
 class VoynichPipeline:
     """
-    3-Module Decipherment Engine & Cappelli Filter (v1.6.0)
+    3-Module Decipherment Engine & Cappelli Filter (v1.7.0)
     """
     def __init__(self):
         self.reset_stats()
@@ -128,10 +153,14 @@ class VoynichPipeline:
             tokens = [t.strip() for t in clean_line.split('.') if t.strip()]
             for token in tokens:
                 cls = self.classify_token(token)
-                self.stats[cls] += 1
                 
                 decomp = self.decompose_compound(token)
                 decomp['class'] = cls
+                
+                # Semantic Isolation Filter alkalmazása a torzítások megelőzésére
+                decomp = SemanticIsolationFilter.sanitize_token_data(decomp)
+                
+                self.stats[decomp['class']] += 1
                 results.append(decomp)
                 
         return results
@@ -146,7 +175,7 @@ class VoynichPipeline:
 
 if __name__ == "__main__":
     sample_ivtff_input = """
-    # Voynich Manuscript IVTFF Test Sample (v1.6.0)
+    # Voynich Manuscript IVTFF Test Sample (v1.7.0)
     <f104v.P.1;H> pchdoiin.opcheedy.orar.oltcheey.opchedy.ol.ear.aiir.aly.cheodaiin.cheekaiin.dam-
     <f80r.P.27;H> qokcheey.oeees.sa.cheo.invalid_phantom_seq!
     """
@@ -163,43 +192,7 @@ if __name__ == "__main__":
         p_str = f"{res['prefix']} ({res['prefix_meaning']})" if res['prefix'] != 'None' else 'None'
         s_str = f"{res['stem']} ({res['stem_meaning']})" if res['stem'] != 'None' else 'None'
         print(f"{res['original']:<18} | {res['class']:<16} | {p_str:<25} | {s_str:<20}")
-    class SemanticIsolationFilter:
-    """
-    Szigorú szétválasztó modul a konfirmációs torzítás (Overfitting/Bias) megakadályozására.
-    Biztosítja, hogy az algoritmus kizárólag objektív morfológiai leírókat adjon vissza.
-    """
-    BANNED_SPECIFIC_TAXA = [
-        "borostyán", "tündérrózsa", "báránypirosító", 
-        "hedera", "nymphaea", "alkanna", "ivy", "water lily"
-    ]
 
-    @classmethod
-    def sanitize_token_data(cls, token_data: dict) -> dict:
-        meaning = token_data.get("meaning", "").lower()
-        
-        for taxon in cls.BANNED_SPECIFIC_TAXA:
-            if taxon in meaning:
-                token_data["meaning"] = "[MEGHATÁROZATLAN BOTANIKAI MORFOLÓGIAI ELEM]"
-                token_data["status"] = "Yellow"
-                token_data["semantic_bias_warning"] = f"Blocked specific taxon association: '{taxon}'"
-                break
-
-        return token_data
-
-
-def process_token(token_data: dict) -> dict:
-    """
-    Fő szűrési és feldolgozási függvény, amely érvényesíti
-    a Semantic Isolation Filter szabályait.
-    """
-    cleaned_data = SemanticIsolationFilter.sanitize_token_data(token_data)
-    return cleaned_data
-
-
-    print("\n--------------------------------------------------------------------------")
-    print(f"Overall Text Validity Rate: {pipeline.get_validity_rate():.2f}%")
-    print(f"Filter Breakdown Statistics: {pipeline.stats}")
-    print("==========================================================================")
     print("\n--------------------------------------------------------------------------")
     print(f"Overall Text Validity Rate: {pipeline.get_validity_rate():.2f}%")
     print(f"Filter Breakdown Statistics: {pipeline.stats}")
