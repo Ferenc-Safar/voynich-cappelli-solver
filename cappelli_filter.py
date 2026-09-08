@@ -163,7 +163,43 @@ if __name__ == "__main__":
         p_str = f"{res['prefix']} ({res['prefix_meaning']})" if res['prefix'] != 'None' else 'None'
         s_str = f"{res['stem']} ({res['stem_meaning']})" if res['stem'] != 'None' else 'None'
         print(f"{res['original']:<18} | {res['class']:<16} | {p_str:<25} | {s_str:<20}")
+    class SemanticIsolationFilter:
+    """
+    Szigorú szétválasztó modul a konfirmációs torzítás (Overfitting/Bias) megakadályozására.
+    Biztosítja, hogy az algoritmus kizárólag objektív morfológiai leírókat adjon vissza.
+    """
+    BANNED_SPECIFIC_TAXA = [
+        "borostyán", "tündérrózsa", "báránypirosító", 
+        "hedera", "nymphaea", "alkanna", "ivy", "water lily"
+    ]
 
+    @classmethod
+    def sanitize_token_data(cls, token_data: dict) -> dict:
+        meaning = token_data.get("meaning", "").lower()
+        
+        for taxon in cls.BANNED_SPECIFIC_TAXA:
+            if taxon in meaning:
+                token_data["meaning"] = "[MEGHATÁROZATLAN BOTANIKAI MORFOLÓGIAI ELEM]"
+                token_data["status"] = "Yellow"
+                token_data["semantic_bias_warning"] = f"Blocked specific taxon association: '{taxon}'"
+                break
+
+        return token_data
+
+
+def process_token(token_data: dict) -> dict:
+    """
+    Fő szűrési és feldolgozási függvény, amely érvényesíti
+    a Semantic Isolation Filter szabályait.
+    """
+    cleaned_data = SemanticIsolationFilter.sanitize_token_data(token_data)
+    return cleaned_data
+
+
+    print("\n--------------------------------------------------------------------------")
+    print(f"Overall Text Validity Rate: {pipeline.get_validity_rate():.2f}%")
+    print(f"Filter Breakdown Statistics: {pipeline.stats}")
+    print("==========================================================================")
     print("\n--------------------------------------------------------------------------")
     print(f"Overall Text Validity Rate: {pipeline.get_validity_rate():.2f}%")
     print(f"Filter Breakdown Statistics: {pipeline.stats}")
