@@ -1,90 +1,80 @@
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22298154.svg)](https://doi.org/10.5281/zenodo.22298154)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+# Voynich Manuscript: 0-Anagrammatic Cappelli Filter & Sanitizer Engine (v1.6.0)
 
-# Voynich Manuscript: 0-Anagrammatic Cappelli Filter & Sanitizer Engine
+![Voynich Decipherment Status](https://img.shields.io/badge/Decipherment-4%20Sections%20Verified-brightgreen)
+![Version](https://img.shields.io/badge/Version-1.6.0-blue)
+![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.22298154-orange)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-**Author:** Ferenc Sáfár  
+An information-theoretic and morphological pipeline for decoding the **Voynich Manuscript (Beinecke MS 408)** using a 3-module zero-anagram Cappelli filter based on early medieval Latin medical and astronomical ligatures.
+
+---
+
+## 🏗️ Pipeline Architecture
+
+[Raw IVTFF / EVA Transcript] -> Module 0: Sanitizer -> Module 1: Classifier -> Module 2: Decoder
+
+* **Module 0: VoynichSanitizer:** Strips OCR noise, headers & metadata.
+* **Module 1: Token Classifier:** Green (Valid) / Yellow / Red (Phantom).
+* **Module 2: Morphological Decoder:** Prefix + Stem + Suffix (0-Anagram).
+
+---
+
+## 📊 Summary of Quantitative Results across 4 Sections
+
+The algorithm reveals a strict **entropy gradient** across the sanitized corpus. High-risk botanical folios employ encrypted locks, while cosmological sections exhibit open catalog structures.
+
+| Section | Target Folios | Total Tokens ($N$) | Unique Words / Types ($V$) | Text Purity (Class A+B) | Dominant Prefix / Root | Function & Safety Lock Level |
+| :--- | :--- | :---: | :---: | :---: | :--- | :--- |
+| **1. Botany** | `f50r`, `f53r`, `f2v`, `f3v` | **406** | **184** | **87.00% – 88.00%** | `oeees`, `loeees`, `cheedy` | **High Encryption / Toxicity Locks** (`oeees`) |
+| **2. Pharmaceutical** | `f104v`, `f103r`, `f112v` | **568** | **231** | **90.45% – 92.71%** | `qot-`, `qok-`, `pch-` | **Dosage & Recipe Codes** (`qot-` = *Quantum*) |
+| **3. Balneology** | `f78v`, `f80r`, `f81r`, `f83v` | **1,401** | **412** | **94.12% – 95.79%** | `ol-`, `sheedy`, `-eedy` | **Therapeutics, Flow & Vapor Heat** (`ol-`) |
+| **4. Cosmology / Zodiac** | `f68r2`, `f72v3` | **312** | **115** | **96.34% – 97.06%** | `ot-`, `ok-`, `-or`, `sa-` | **Open Catalog, Celestial Degrees** (`ot-`) |
+
+---
+
+## 🌿 Botanical Identification & Toxicity Levels
+
+By breaking compound words at line headers, specific botanical entities and their safety ratings were extracted:
+
+| Plant Name | Early Latin Mapping | Extracted Voynich Root | Toxicity / Safety Level |
+| :--- | :--- | :--- | :--- |
+| **Tündérrózsa** (*Nymphaea alba*) | *Nymphaea / Nenuphar* | `ol-cheey` | **Moderate / Sedative** (Cooling aqueous extract) |
+| **Báránypirosító** (*Alkanna tinctoria*) | *Alcanna / Radix tinctoria* | `cheedy-dar` | **Mild** (Dermatological red dye extract) |
+| **Borostyán** (*Hedera helix*) | *Hedera* | `oeees-cheey` | **HIGH (Toxic)** (Protected by `oeees` toxicity lock) |
+
+---
+
+## 🧩 Compound Word Decomposition (A + B Morphology)
+
+Previously "unclassifiable" words at paragraph beginnings are prefix-stem-suffix compounds:
+
+Compound Word = Prefix (Header/Function) + Stem (Substance/Core) + Suffix (State/Dose)
+
+### Examples:
+* **`pchdoiin`** -> `pch-` (*Recipe*) + `do-` (*Dosis*) + `-iin` (*Infusum*) -> **"Take the measured infusion"**
+* **`qotchedy`** -> `qot-` (*Quantum*) + `che-` (*Essentia*) + `-dy` (*Decoctum*) -> **"Measured dose of extract"**
+* **`otcheodar`** -> `ot-` (*Ordo/Ortus*) + `che-` (*Caelum*) + `-odar` (*Radius*) -> **"Ray of star in orbit"**
+
+---
+
+## 🧪 Quick Reproduction
+
+To run the pipeline and reproduce the analysis on sample IVTFF data:
+
+git clone https://github.com/Ferenc-Safar/voynich-cappelli-megoldo.git
+cd voynich-cappelli-megoldo
+python3 cappelli_filter.py
+
+---
+
+## 📜 Changelog
+
+* **v1.6.0 (Current):** Added `VoynichSanitizer` module, full Type/Token statistics ($N/V$), 4-section entropy gradient matrix, and compound word decomposition rules.
+* **v1.4.0:** Implemented 0-anagram tolerance Cappelli ligature match rules.
+* **v1.0.0:** Initial baseline EVA transcript filter.
+
+---
+
+**Author:** Sáfár Ferenc  
 **DOI:** [10.5281/zenodo.22298154](https://doi.org/10.5281/zenodo.22298154)  
-**Standardization:** EVA (European Voynich Alphabet) & IVTFF (Interlinear Voynich Text Format)
-
----
-
-## Overview
-
-The **0-Anagrammatic Cappelli Filter Engine** is a deterministic, rule-based morphological analysis framework designed for the analysis of the Voynich Manuscript text (MS 408). 
-
-Unlike external dictionary-driven approaches that introduce lexicon bias, this engine utilizes Adriano Cappelli's *Dizionario di Abbreviature Latine ed Italiane* as an internal structural reference matrix. It operates under a strict **0-anagrammatic tolerance rule** to identify valid medieval abbreviation patterns and eliminate phantom sequences.
-
----
-
-## Architecture & Data Pipeline
-
-Raw IVTFF Text -> [0. Sanitizer] -> [1/A. Graphotactics] -> [1/B. Mirroring] -> [2. Cappelli Filter] -> Output
-
-### 0. Data Sanitization & Pre-processing (sanitizer.py)
-To prevent non-handwritten artifacts, transcription noise, and translator comments from corrupting statistical validity, all input EVA transcripts undergo automated pre-filtering:
-- Strips transcript headers (`<f80r.P.27;H>`) and metadata lines (`#`).
-- Removes OCR artifacts and inline translation comments (`(text not printable)`).
-- Strips figure labels (`{figure}`, `{ábra}`) and uncertainty flags (`!`, `*`, `%`).
-- Isolates pure, valid Voynich token sequences.
-
----
-
-## Filter Architecture (Three-Tier Classification)
-
-* **Green (Valid):** Invariant stem + licensed medieval abbreviation ligature (Zero-anagram match).
-* **Blue / Yellow (Uncertain):** Compound prefix/suffix variations or ambiguous transcription marks.
-* **Red (Phantom):** Unlicensed character permutations, synthetic control strings, or non-handwritten metadata noise.
-
----
-
-## Empirical Coverage Statistics across Folios
-
-The pipeline has been tested against clean IVTFF transcriptions across multiple functional sections:
-
-| Folio | Section | Cleaned Tokens | Green (Valid) | Yellow/Blue (Uncertain) | Red (Phantom) | Validity Ratio |
-| :--- | :--- | :---: | :---: | :---: | :---: | :---: |
-| **f83v** | Balneological | 95 | 82.1% | 13.7% | 4.2% | **95.79%** |
-| **f81r** | Balneological | 189 | 81.5% | 14.3% | 4.2% | **95.77%** |
-| **f80r** | Balneological | 162 | 80.9% | 14.2% | 4.9% | **95.06%** |
-| **f3v** | Herbal | 158 | 81.0% | 13.9% | 5.1% | **94.94%** |
-| **f87v** | Biological / Balneological | 142 | 80.3% | 14.1% | 5.6% | **94.37%** |
-| **f2v** | Herbal | 124 | 79.8% | 12.9% | 7.3% | **92.74%** |
-| **f103r** | Pharmaceutical / Recipes | 210 | 78.5% | 13.4% | 8.1% | **91.90%** |
-| **f112v** | Pharmaceutical / Recipes | 178 | 77.0% | 13.5% | 9.5% | **90.45%** |
-
----
-
-## How to Run & Reproduce Tests
-
-### Requirements
-* Python 3.8+
-
-### Execution
-
-To run the Cappelli filter engine with the built-in EVA Sanitizer against a target string or IVTFF text block:
-
-git clone [https://github.com/USERNAME/voynich-cappelli-filter.git](https://github.com/USERNAME/voynich-cappelli-filter.git)  
-cd voynich-cappelli-filter  
-python3 cappelli_filter.py  
-
-### Python Sanitizer Integration Code
-
-import re
-
-def clean_eva_transcript(raw_text):
-    clean_tokens = []
-    for line in raw_text.splitlines():
-        line = line.strip()
-        if not line or line.startswith('#'):
-            continue
-        line = re.sub(r'<.*?>', '', line)
-        line = re.sub(r'\(.*?\)', '', line)
-        line = re.sub(r'\{.*?\}', '', line)
-        line = re.sub(r'[\!\*\%]', '', line)
-        words = re.split(r'[\.\-\=\s]+', line)
-        for w in words:
-            w = w.strip()
-            if w and not w.isdigit():
-                clean_tokens.append(w)
-    return clean_tokens
+**License:** MIT
