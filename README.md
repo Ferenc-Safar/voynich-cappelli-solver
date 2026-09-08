@@ -61,7 +61,7 @@ Compound Word = Prefix (Header/Function) + Stem (Substance/Core) + Suffix (State
 
 To run the pipeline and reproduce the analysis on sample IVTFF data:
 
-git clone https://github.com/Ferenc-Safar/voynich-cappelli-megoldo.git
+git clone https://github.com/Ferenc-Safar/voynich-cappelli-megoldo
 cd voynich-cappelli-megoldo
 python3 cappelli_filter.py
 
